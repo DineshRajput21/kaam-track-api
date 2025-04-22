@@ -24,7 +24,7 @@ app.post("/addProjects", async (req, res) => {
     }
 
     const docRef = await db.collection("projects").add({projectName: projectName.trim()});
-    return res.status(201).json({id: docRef.id, projectName: projectName.trim()});
+    res.status(201).send({id: docRef.id, message: "Project added successfully"});
   } catch (error) {
     console.error("Error adding project:", {
       message: error.message,
@@ -43,7 +43,7 @@ app.get("/getProjects", async (req, res) => {
     const snapshot = await db.collection("projects").orderBy("createdAt", "desc").get();
 
     if (snapshot.empty) {
-      return res.status(200).json([]); // No projects found
+      res.status(200).send([]); // No projects found
     }
 
     const projects = snapshot.docs.map((doc) => ({
@@ -51,7 +51,7 @@ app.get("/getProjects", async (req, res) => {
       ...doc.data(),
     }));
 
-    return res.status(200).json(projects);
+    res.status(200).send(projects);
   } catch (error) {
     console.error("Error fetching projects:", error);
     return res.status(500).json({
