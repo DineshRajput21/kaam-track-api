@@ -20,9 +20,9 @@ router.post("/addLabour", async (req, res) => {
       contact: contact.toString(),
       adhaarNo: adhaarNo.toString(),
       role,
-      attendance: Array.isArray(attendance)
-        ? attendance.filter((entry) => entry.projectId && typeof entry.isLogin === "boolean")
-        : [],
+      attendance: Array.isArray(attendance) ?
+        attendance.filter((entry) => entry.projectId && typeof entry.isLogin === "boolean") :
+        [],
       isLoggedIn: isLoggedIn === true,
       createdAt: new Date().toISOString(),
     };
@@ -53,7 +53,8 @@ router.get("/labour", async (req, res) => {
 router.post("/addLabourAttendance", async (req, res) => {
   const { labourId, attendance } = req.body;
 
-  if (!labourId || !attendance || typeof attendance.projectId === "undefined" || typeof attendance.isLogin === "undefined") {
+  if (!labourId || !attendance || typeof attendance.projectId === "undefined" ||
+    typeof attendance.isLogin === "undefined") {
     return res.status(400).json({
       error: "labourId and valid attendance (with projectId and isLogin) are required",
     });
@@ -85,7 +86,7 @@ router.post("/addLabourAttendance", async (req, res) => {
     });
 
     const updatedProjectLabours = (projectData.projectLabours || []).map((labour) =>
-      labour.id === labourId ? { ...labour, isLoggedIn: attendance.isLogin } : labour
+      labour.id === labourId ? { ...labour, isLoggedIn: attendance.isLogin } : labour,
     );
 
     if (!updatedProjectLabours.find((l) => l.id === labourId)) {
