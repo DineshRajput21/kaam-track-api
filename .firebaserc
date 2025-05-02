@@ -1,0 +1,10 @@
+{
+  "projects": {
+    "kaam-track": "kaam-track",
+    "kaam-track-api": "kaam-track-api",
+    "default": "kaam-track-api",
+    "uat": "kaam-track-api"
+  },
+  "targets": {},
+  "etags": {}
+}
