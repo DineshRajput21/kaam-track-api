@@ -5,6 +5,7 @@ const db = require("../services/firebase");
 // Add Project
 router.post("/addProject", async (req, res) => {
   const {
+    userId,
     projectName,
     location,
     description,
@@ -14,12 +15,15 @@ router.post("/addProject", async (req, res) => {
     projectLabours,
   } = req.body;
 
-  if (!projectName || !location) {
-    return res.status(400).json({ error: "projectName and location are required" });
+  if (!projectName || !location || !userId) {
+    return res
+        .status(400)
+        .json({ error: "projectName and location are required" });
   }
 
   try {
     const projectData = {
+      userId,
       projectName,
       location,
       description: description || "",
@@ -39,12 +43,25 @@ router.post("/addProject", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 // Get Projects
 router.get("/projects", async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
   try {
-    const snapshot = await db.collection("projectsList").orderBy("createdAt", "desc").get();
-    const projects = snapshot.docs.map((doc) => doc.data());
+    const snapshot = await db
+        .collection("projectsList")
+        .where("userId", "==", userId)
+        .get();
+
+    const projects = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
     res.status(200).json({ projects });
   } catch (error) {
     console.error("Error fetching projects:", error);
@@ -65,9 +82,14 @@ router.post("/addLabourToProject", async (req, res) => {
     await docRef.update({ projectLabours });
 
     const snapshot = await db.collection("projectsList").get();
-    const allProjects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const allProjects = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-    res.status(200).json({ message: "Labour added to project", projects: allProjects });
+    res
+        .status(200)
+        .json({ message: "Labour added to project", projects: allProjects });
   } catch (error) {
     console.error("Error adding labour to project:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -87,9 +109,14 @@ router.post("/markProjectStatus", async (req, res) => {
     await docRef.update({ isCompleted });
 
     const snapshot = await db.collection("projectsList").get();
-    const allProjects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const allProjects = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-    res.status(200).json({ message: "Project Completed", projects: allProjects });
+    res
+        .status(200)
+        .json({ message: "Project Completed", projects: allProjects });
   } catch (error) {
     console.error("Error completing project:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -112,7 +139,9 @@ router.get("/getProjectById", async (req, res) => {
       return res.status(404).json({ error: "Project not found" });
     }
 
-    res.status(200).json({ project: { id: projectDoc.id, ...projectDoc.data() } });
+    res
+        .status(200)
+        .json({ project: { id: projectDoc.id, ...projectDoc.data() } });
   } catch (error) {
     console.error("Error fetching project by ID:", error);
     res.status(500).json({ error: "Internal Server Error" });
