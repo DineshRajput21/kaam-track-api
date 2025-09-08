@@ -6,26 +6,20 @@ const db = require("../services/firebase");
 
 // Add Labour
 router.post("/addLabour", async (req, res) => {
-  const {
-    userId,
-    name,
-    wages,
-    contact,
-    role,
-    adhaarNo,
-    attendance,
-    isLoggedIn,
-  } = req.body;
+  const { uid, name, wages, contact, role, adhaarNo, attendance, isLoggedIn } =
+    req.body;
+  console.log("Body:", req.body);
 
-  if (!userId || !name || !contact || !role || !adhaarNo) {
+
+  if (!uid || !name || !contact || !role || !adhaarNo) {
     return res.status(400).json({
-      error: "userId, name, contact, role, and adhaarNo are required",
+      error: "uid, name, contact, role, and adhaarNo are required",
     });
   }
 
   try {
     const labourData = {
-      userId,
+      uid,
       name,
       wages: wages || null,
       contact: contact.toString(),
@@ -46,7 +40,9 @@ router.post("/addLabour", async (req, res) => {
     const docRef = await db.collection("labourList").add(labourData);
     await docRef.update({ id: docRef.id });
 
-    res.status(201).json({ message: "Labour added successfully", id: docRef.id });
+    res
+        .status(201)
+        .json({ message: "Labour added successfully", id: docRef.id });
   } catch (error) {
     console.error("Error adding labour:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -55,16 +51,16 @@ router.post("/addLabour", async (req, res) => {
 
 // Get Labours
 router.get("/labour", async (req, res) => {
-  const { userId } = req.query;
+  const { uid } = req.query;
 
-  if (!userId) {
-    return res.status(400).json({ error: "userId is required" });
+  if (!uid) {
+    return res.status(400).json({ error: "uid is required" });
   }
 
   try {
     const snapshot = await db
         .collection("labourList")
-        .where("userId", "==", userId)
+        .where("uid", "==", uid)
         .get();
 
     const labours = snapshot.docs.map((doc) => ({
@@ -167,11 +163,11 @@ router.post("/addLabourAttendance", async (req, res) => {
 
 // ADD MATERIAL
 router.post("/addMaterial", async (req, res) => {
-  const { material, quantity, unit, status, userId } = req.body;
+  const { material, quantity, unit, status, uid } = req.body;
 
-  if (!material || !quantity || !unit || !status || !userId) {
+  if (!material || !quantity || !unit || !status || !uid) {
     return res.status(400).json({
-      error: "material, quantity, unit, status, and userId are required",
+      error: "material, quantity, unit, status, and uid are required",
     });
   }
 
@@ -179,7 +175,7 @@ router.post("/addMaterial", async (req, res) => {
     const timestamp = new Date().toISOString();
 
     const materialData = {
-      userId,
+      uid,
       material,
       quantity,
       unit,
@@ -202,14 +198,14 @@ router.post("/addMaterial", async (req, res) => {
 
 // GET MATERIAL
 router.get("/material", async (req, res) => {
-  const { userId } = req.query;
-  if (!userId) {
-    return res.status(400).json({ error: "userId is required" });
+  const { uid } = req.query;
+  if (!uid) {
+    return res.status(400).json({ error: "uid is required" });
   }
   try {
     const snapshot = await db
         .collection("materialList")
-        .where("userId", "==", userId)
+        .where("uid", "==", uid)
         .get();
 
     const materials = snapshot.docs.map((doc) => ({
@@ -285,5 +281,4 @@ router.post("/updateMaterial", async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 module.exports = router;
